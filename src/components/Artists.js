@@ -6,31 +6,42 @@ export default class Artists extends Component {
         super(props);
         this.state = {
             artists: [],
+            artistsUrl: 'https://api.spotify.com/v1/me/following?type=artist',
             dataIsLoaded: false
         };
     }
 
-    componentDidMount() {
+    getArtists() {
         if (this.props.accessToken) {
-            axios.get('https://api.spotify.com/v1/me/following?type=artist' , { headers: {"Authorization" : `Bearer ${this.props.accessToken}`} })
+            axios.get(this.state.artistsUrl, 
+                { headers: {"Authorization" : `Bearer ${this.props.accessToken}`} })
                 .then(res => {
-                    this.setState({                      
-                        artists: res.data.artists.items,
+                    this.setState({  
+                        artistsUrl: res.data.artists.next,                    
+                        artists: this.state.artists.concat(res.data.artists.items),
                     });
-                    console.log('state', this.state);
+
+                    // if there are more artists, recurse!
+                    if (res.data.artists.next) 
+                        this.getArtists();
+                    else {
+                        this.setState({
+                            dataIsLoaded: true,
+                        });
+                    }
                 }).catch((error) => {
                     console.log(error)
-                }).finally(() => {
-                    this.setState({dataIsLoaded: true})
                 });
-            
-          } else {
-              console.log('no access token')
-          } 
+        } else {
+            console.log('no access token')
+        } 
+    }
+
+    componentDidMount() {
+        this.getArtists();
     }
 
     render() {
-        //const { dataIsLoaded, artists } = this.state;
         if (!this.state.dataIsLoaded) 
             return <div> <h1> Loading... </h1> </div> ;
    
