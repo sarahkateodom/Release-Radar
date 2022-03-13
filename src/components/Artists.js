@@ -7,7 +7,11 @@ export default class Artists extends Component {
         this.state = {
             artists: [],
             artistsUrl: 'https://api.spotify.com/v1/me/following?type=artist',
-            dataIsLoaded: false
+            artistsDataIsLoaded: false,
+            newReleases: [],
+            newReleasesUrl: 'https://api.spotify.com/v1/browse/new-releases',
+            newReleasesDataIsLoaded: false,
+            myNewReleases: [],
         };
     }
 
@@ -26,8 +30,10 @@ export default class Artists extends Component {
                         this.getArtists();
                     else {
                         this.setState({
-                            dataIsLoaded: true,
+                            artistsDataIsLoaded: true,
                         });
+
+                        if (this.state.newReleasesDataIsLoaded) this.getMyNewReleases();
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -37,21 +43,87 @@ export default class Artists extends Component {
         } 
     }
 
+    getNewReleases() {
+        if (this.props.accessToken) {
+            axios.get(this.state.newReleasesUrl, 
+                { headers: {"Authorization" : `Bearer ${this.props.accessToken}`} })
+                .then(res => {
+                    this.setState({  
+                        newReleasesUrl: res.data.albums.next,                    
+                        newReleases: this.state.newReleases.concat(res.data.albums.items),
+                    });
+
+                    // if there are more albums, recurse!
+                    if (res.data.albums.next) 
+                        this.getNewReleases();
+                    else {
+                        this.setState({
+                            newReleasesDataIsLoaded: true,
+                        });
+
+                        if (this.state.artistsDataIsLoaded) this.getMyNewReleases();
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+        } else {
+            console.log('no access token')
+        } 
+    }
+
+    getMyNewReleases() {
+        var newReleases = this.state.newReleases.filter(release => {
+            return this.state.artists.filter(artist => {
+                return release.artists.map(a => a.id).indexOf(artist.id) >= 0;
+            }).length > 0; 
+        });
+
+        this.setState({
+            myNewReleases: newReleases
+        });
+    }
+
+    renderArtists(artists) {
+        if (artists.lengh > 0) {
+            return artists.map(a => {
+                return <span>{a.name}</span>
+            }).join(", ");
+        } else {
+            return <span>{artists[0].name}</span>;
+        }
+    }
+
+    renderNewRelease(release) {
+        return (
+            <div>
+                <p>
+                    <span>{release.name} ({release.album_type}) - </span>
+                    {
+                        this.renderArtists(release.artists)
+                    }
+                </p>
+            </div>
+          );
+    }
+
     componentDidMount() {
         this.getArtists();
+        this.getNewReleases();
     }
 
     render() {
-        if (!this.state.dataIsLoaded) 
-            return <div> <h1> Loading... </h1> </div> ;
+        if (!this.state.artistsDataIsLoaded || !this.state.newReleasesDataIsLoaded) 
+            return <div><h1> Loading... </h1></div>;
    
         return (
-            <div> Artists: {this.state.artists.length}               
-            {
-                this.state.artists.map((artist)=> (    
-                    <div>{artist.name}</div>
-                ))
-            }
+            <div>
+                <div>My New Releases: {this.state.myNewReleases.length} </div>
+                         
+                {
+                    this.state.myNewReleases.map((release)=> (    
+                        this.renderNewRelease(release)
+                    ))
+                }
             </div>
         )
     }
