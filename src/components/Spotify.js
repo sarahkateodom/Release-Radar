@@ -18,16 +18,6 @@ export default class Spotify extends Component {
     };
   }
 
-  getAccessToken() {
-    var storedAccessToken = ls.get('accessToken');
-    if (storedAccessToken) {
-      this.setState({
-        accessToken: storedAccessToken,
-        authDataIsLoaded: true,
-      })
-    }
-  }
-
   onSuccess = ({ access_token: token }) => {
     this.setState({
       accessToken: token,
@@ -77,35 +67,3 @@ export default class Spotify extends Component {
     }
   }
 }
-
-
-// export default function ImplicitGrant() {
-//   const [accessToken, setAccessToken] = useState(null);
-//   const [error, setError] = useState(null);
-//   const onSuccess = ({ access_token: token }) => setAccessToken(token);
-//   const onFailure = response => console.error(response);
-//   return (
-//     <div className="column">
-//       {
-//         error && <ErrorAlert error={error} />
-//       }
-//       <OAuth2Login
-//         authorizationUrl={authorizationUrl}
-//         clientId={clientId}
-//         redirectUri={redirectUri}
-//         scope="user-follow-read"
-//         responseType="token"
-//         buttonText="Implicit grant login"
-//         onSuccess={onSuccess}
-//         onFailure={onFailure}
-//       />
-//       {        
-//         accessToken && <Artists accessToken={accessToken}></Artists>
-//       }
-   
-    
-
-//     </div>
-
-//   );
-// }
