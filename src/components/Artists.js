@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import axios from 'axios';
+import LocalStorageUtility from '../utilities/LocalStorageUtility';
+const ls = new LocalStorageUtility();
 
 export default class Artists extends Component {
     constructor(props) {
@@ -33,7 +35,8 @@ export default class Artists extends Component {
                         this.setState({
                             artistsDataIsLoaded: true,
                         });
-
+                        
+                        ls.setWithExpiry('artists', this.state.artists, 60000);
                         if (this.state.newReleasesDataIsLoaded && !this.state.myNewReleasesDataIsLoaded) this.getMyNewReleases();
                     }
                 }).catch((error) => {
@@ -111,7 +114,16 @@ export default class Artists extends Component {
     }
 
     componentDidMount() {
-        this.getArtists();
+        var storedArtists = ls.get('artists')
+        if (storedArtists) {
+            this.setState({
+                artists: storedArtists,
+                artistsDataIsLoaded: true,
+            });
+        } else {
+            this.getArtists();
+        }
+
         this.getNewReleases();
     }
 
