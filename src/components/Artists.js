@@ -12,6 +12,7 @@ export default class Artists extends Component {
             newReleasesUrl: 'https://api.spotify.com/v1/browse/new-releases',
             newReleasesDataIsLoaded: false,
             myNewReleases: [],
+            myNewReleasesDataIsLoaded: false,
         };
     }
 
@@ -33,7 +34,7 @@ export default class Artists extends Component {
                             artistsDataIsLoaded: true,
                         });
 
-                        if (this.state.newReleasesDataIsLoaded) this.getMyNewReleases();
+                        if (this.state.newReleasesDataIsLoaded && !this.state.myNewReleasesDataIsLoaded) this.getMyNewReleases();
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -61,7 +62,7 @@ export default class Artists extends Component {
                             newReleasesDataIsLoaded: true,
                         });
 
-                        if (this.state.artistsDataIsLoaded) this.getMyNewReleases();
+                        if (this.state.artistsDataIsLoaded && !this.state.myNewReleasesDataIsLoaded) this.getMyNewReleases();
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -79,7 +80,8 @@ export default class Artists extends Component {
         });
 
         this.setState({
-            myNewReleases: newReleases
+            myNewReleases: newReleases,
+            myNewReleasesDataIsLoaded: true,
         });
     }
 
@@ -97,10 +99,12 @@ export default class Artists extends Component {
         return (
             <div>
                 <p>
-                    <span>{release.name} ({release.album_type}) - </span>
-                    {
-                        this.renderArtists(release.artists)
-                    }
+                    <a href={release.external_urls.spotify} target='_blank'> 
+                        <span>{release.name} ({release.album_type}) - </span>
+                        {
+                            this.renderArtists(release.artists)
+                        }
+                    </a>
                 </p>
             </div>
           );
